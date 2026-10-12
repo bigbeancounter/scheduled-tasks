@@ -16,23 +16,30 @@ import os
 MY_EMAIL = os.environ.get("MY_EMAIL")
 MY_PASSWORD = os.environ.get("MY_PASSWORD")
 
-today = datetime.now()
-today_tuple = (today.month, today.day)
+folder_path = Path("./letter_templates")
+txt_files = list(folder_path.glob("*.txt"))
 
-data = pandas.read_csv("birthdays.csv")
-birthdays_dict = {(data_row["month"], data_row["day"])                  : data_row for (index, data_row) in data.iterrows()}
-if today_tuple in birthdays_dict:
-    birthday_person = birthdays_dict[today_tuple]
-    file_path = f"letter_templates/letter_{random.randint(1, 3)}.txt"
-    with open(file_path) as letter_file:
-        contents = letter_file.read()
-        contents = contents.replace("[NAME]", birthday_person["name"])
+now = dt.datetime.now()
+this_month = now.month
+this_day = now.day
+this_year = now.year
 
-    with smtplib.SMTP("YOUR EMAIL PROVIDER SMTP SERVER ADDRESS") as connection:
-        connection.starttls()
-        connection.login(MY_EMAIL, MY_PASSWORD)
-        connection.sendmail(
-            from_addr=MY_EMAIL,
-            to_addrs=birthday_person["email"],
-            msg=f"Subject:Happy Birthday!\n\n{contents}"
-        )
+file = pandas.read_csv("birthdays.csv")
+
+for index, row in file.iterrows():
+    if row["month"] == this_month and row["day"] == this_day:
+        random_letter = random.choice(txt_files)
+        age = this_year - row["year"]
+
+        with open(random_letter, "r") as old_letter:
+            content = old_letter.read()
+            updated_content = content.replace(name_to_replace, row["name"])
+
+        with smtplib.SMTP("smtp.gmail.com", port=587) as connection:
+                connection.starttls()
+                connection.login(MY_EMAIL, MY_PASSWORD)
+                connection.sendmail(
+                    from_addr=MY_EMAIL,
+                    to_addrs=row["email"],
+                    msg=f"Subject:Happy Birthday! You're {age} today! It's just a test! ;-)\n\n{updated_content}"
+                )
