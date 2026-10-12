@@ -16,9 +16,7 @@ import os
 MY_EMAIL = os.environ.get("MY_EMAIL")
 MY_PASSWORD = os.environ.get("MY_PASSWORD")
 
-folder_path = Path("./letter_templates")
-txt_files = list(folder_path.glob("*.txt"))
-
+name_to_replace = "[NAME]"
 now = dt.datetime.now()
 this_month = now.month
 this_day = now.day
@@ -28,11 +26,11 @@ file = pandas.read_csv("birthdays.csv")
 
 for index, row in file.iterrows():
     if row["month"] == this_month and row["day"] == this_day:
-        random_letter = random.choice(txt_files)
         age = this_year - row["year"]
+        file_path = f"letter_templates/letter_{random.randint(1, 3)}.txt"
 
-        with open(random_letter, "r") as old_letter:
-            content = old_letter.read()
+        with open(file_path) as letter_file:
+            content = letter_file.read()
             updated_content = content.replace(name_to_replace, row["name"])
 
         with smtplib.SMTP("smtp.gmail.com", port=587) as connection:
